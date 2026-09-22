@@ -166,8 +166,10 @@ def run_grid(inputfiles):
 
     # 5) prepare a package for xrootd
     CAFPYANA_WD = os.environ['CAFPYANA_WD']
-    cp_XRootD = "cp -r " + CAFPYANA_WD + "/envs/xrootd-5.6.9/build/lib.linux-x86_64-cpython-310/XRootD " + MasterJobDir
-    cp_pyxrootd = "cp -r " + CAFPYANA_WD + "/envs/xrootd-5.6.9/build/lib.linux-x86_64-cpython-310/pyxrootd " + MasterJobDir
+    # cp_XRootD = "cp -r " + CAFPYANA_WD + "/envs/xrootd-5.6.9/build/lib.linux-x86_64-cpython-310/XRootD " + MasterJobDir
+    # cp_pyxrootd = "cp -r " + CAFPYANA_WD + "/envs/xrootd-5.6.9/build/lib.linux-x86_64-cpython-310/pyxrootd " + MasterJobDir
+    cp_XRootD = "cp -r " + CAFPYANA_WD + "/envs/venv_py310_cafpyana/lib/python3.10/site-packages/XRootD " + MasterJobDir
+    cp_pyxrootd = "cp -r " + CAFPYANA_WD + "/envs/venv_py310_cafpyana/lib/python3.10/site-packages/pyxrootd " + MasterJobDir
     os.system(cp_XRootD)
     os.system(cp_pyxrootd)
 

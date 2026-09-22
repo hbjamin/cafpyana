@@ -88,7 +88,50 @@ def make_timingdf(f):
     return timing
 
 def make_triggerdf(f):
-    return  loadbranches(f["recTree"], trigger_info_branches).rec.hdr.triggerinfo
+    """Scalar triggerinfo plus PTB HLT/LLT bits in one table.
+
+    PTB vectors have independent CAF ..length branches (and HLT vs LLT
+    lengths differ), so they cannot share a loadbranches() call with the
+    scalars. They are loaded separately, then stacked into a long table:
+    one row per PTB bit, with scalar trigger columns broadcast by entry.
+    Column ptb_is_hlt is True for HLT bits and False for LLT bits.
+    """
+    scalars = loadbranches(f["recTree"], trigger_info_branches).rec.hdr.triggerinfo
+
+    pieces = []
+    for is_hlt, ts_br, bit_br in (
+        (True, ptb_hlt_timestamp_branch, ptb_hlt_bit_branch),
+        (False, ptb_llt_timestamp_branch, ptb_llt_bit_branch),
+    ):
+        ptb = _merge_ptb_vector_pair(f, ts_br, bit_br)
+        # Normalize vector-index name so HLT/LLT can be concatenated.
+        ptb.index = ptb.index.set_names(["entry", "ptb_idx"])
+        ptb = ptb.rename(
+            columns={
+                "ptb_hlt_timestamp": "ptb_timestamp",
+                "ptb_llt_timestamp": "ptb_timestamp",
+                "ptb_hlt_bit": "ptb_bit",
+                "ptb_llt_bit": "ptb_bit",
+            }
+        )
+        ptb["ptb_is_hlt"] = is_hlt
+        merged = ptb.reset_index().merge(
+            scalars.reset_index(),
+            on="entry",
+            how="left",
+        ).set_index(["entry", "ptb_is_hlt", "ptb_idx"])
+        pieces.append(merged)
+
+    if not pieces:
+        return scalars
+    return pd.concat(pieces, axis=0).sort_index()
+
+def _merge_ptb_vector_pair(f, timestamp_branches, bit_branches):
+    """Load two parallel PTB vectors (each with its own ..length) and join them."""
+    ts = loadbranches(f["recTree"], timestamp_branches).rec.hdr.triggerinfo
+    bit = loadbranches(f["recTree"], bit_branches).rec.hdr.triggerinfo
+    bit.index.set_names(ts.index.names, inplace=True)
+    return ts.merge(bit, how="left", left_index=True, right_index=True)
 
 def make_mcnuwgtdf(f):
     return make_mcnudf(f, include_weights=True, multisim_nuniv=100)

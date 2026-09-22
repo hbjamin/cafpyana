@@ -40,6 +40,13 @@ trigger_info_branches = [
     "rec.hdr.triggerinfo.beam_gate_time_abs",
 ]
 
+# PTB vectors are flattened with independent ..length branches, so each
+# field must be loaded separately and merged inside make_triggerdf.
+ptb_hlt_timestamp_branch = ["rec.hdr.triggerinfo.ptb_hlt_timestamp"]
+ptb_hlt_bit_branch = ["rec.hdr.triggerinfo.ptb_hlt_bit"]
+ptb_llt_timestamp_branch = ["rec.hdr.triggerinfo.ptb_llt_timestamp"]
+ptb_llt_bit_branch = ["rec.hdr.triggerinfo.ptb_llt_bit"]
+
 opflashbranches = [
     "rec.opflashes.firsttime",
     "rec.opflashes.time",
